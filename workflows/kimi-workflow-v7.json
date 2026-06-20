@@ -1,0 +1,678 @@
+{
+  "name": "Instagram Digital Human Content Farm",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24,
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Daily 8AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "daily-8am"
+    },
+    {
+      "parameters": {
+        "jsCode": "const today = new Date();\nconst dayIndex = today.getDate();\n\n// Get recommendation from analytics engine\nconst recommendation = $input.first().json || {};\nconst recommendedTheme = recommendation.recommendedTheme || 'travel';\nconst trendAnalysis = recommendation.trendAnalysis || {};\nconst trendingHashtags = trendAnalysis.recommendedHashtags || [];\nconst contentAngles = trendAnalysis.contentAngles || [];\nconst visualTrends = trendAnalysis.visualTrends || [];\nconst seasonalTopics = recommendation.seasonalTopics || [];\n\nconst humans = [\n  {\n    name: 'Olivia Kam',\n    instagram: 'iamolivia.k',\n    age: 26,\n    height: '170cm',\n    weight: '52kg',\n    measurements: '86-60-89',\n    cup: 'C cup',\n    dimples: false,\n    physicalTraits: {\n      hair: 'long wavy brown hair',\n      face: 'refined V-face, soft jawline',\n      eyes: 'large clear eyes with watery shine',\n      lips: 'naturally plump pink lips',\n      skin: 'extremely fair porcelain skin'\n    },\n    persona: 'travel and fashion model',\n    personality: 'elegant, confident, adventurous, subtly seductive',\n    lifestyle: 'luxury travel, high fashion, boutique hotels, scenic destinations',\n    contentPillars: ['travel adventures', 'fashion looks', 'sexy elegant style', 'luxury lifestyle', 'beach and resort'],\n    visualStyle: 'stylish outfits, scenic locations, elegant poses, slightly revealing fashion, confident gaze',\n    tone: 'elegant, subtly seductive, confident',\n    fixedDescription: 'Olivia Kam, 26, 170cm slim elegant body with C cup, long wavy brown hair, refined V-face with soft jawline, large clear eyes, naturally plump pink lips, extremely fair porcelain skin'\n  },\n  {\n    name: 'Piglet Chu',\n    instagram: 'iampiglet.g',\n    age: 25,\n    height: '165cm',\n    weight: '49kg',\n    measurements: '89-59-88',\n    cup: 'D cup',\n    dimples: true,\n    physicalTraits: {\n      hair: 'short black bob hair with slight mess and layers',\n      face: 'round V-face with cute dimples when smiling',\n      eyes: 'almond-shaped eyes, lazy sweet gaze',\n      nose: 'small upturned nose',\n      lips: 'pink slightly pouty lips',\n      body: 'petite with soft curves'\n    },\n    persona: 'travel and fashion girl',\n    personality: 'playful, cute, adventurous, subtly sexy, charming',\n    lifestyle: 'city hopping, trendy cafes, street fashion, cute destinations',\n    contentPillars: ['travel diaries', 'fashion ootd', 'cute sexy style', 'city exploration', 'beach fun'],\n    visualStyle: 'trendy outfits, urban backdrops, playful poses, slightly revealing casual wear, cute expressions',\n    tone: 'playful, cute, subtly seductive',\n    fixedDescription: 'Piglet Chu, 25, 165cm petite body with D cup, short black bob hair with slight mess, round V-face with cute dimples when smiling, almond-shaped lazy sweet eyes, small upturned nose, pink pouty lips, soft curves'\n  },\n  {\n    name: 'Phoenix Yi',\n    instagram: 'iamphoenix.y',\n    age: 28,\n    height: '183cm',\n    weight: '75kg',\n    measurements: '103-76-96',\n    dimples: false,\n    physicalTraits: {\n      hair: 'long black hair with slight curl, below ear length',\n      face: 'sharp V-face with clear lines',\n      eyes: 'deep peach blossom eyes, lazy with mischievous smile',\n      body: 'lean muscular with defined abs',\n      skin: 'healthy fair skin'\n    },\n    persona: 'stylish fitness model',\n    personality: 'confident, edgy, disciplined, cool, unapologetic',\n    lifestyle: 'intense gym training, protein lifestyle, athletic wear, fitness culture',\n    contentPillars: ['gym training', 'muscle showcase', 'fitness motivation', 'athletic fashion', 'strength display'],\n    visualStyle: 'gym settings, muscle definition focus, cool lighting, edgy poses, sweat and effort, stylish gym wear',\n    tone: 'confident, edgy, motivational',\n    fixedDescription: 'Phoenix Yi, 28, 183cm lean muscular body with defined six-pack abs, long black slightly curly hair below ear, sharp V-face with clear lines, deep peach blossom eyes with lazy mischievous gaze, healthy fair skin'\n  },\n  {\n    name: 'Andy Park',\n    instagram: 'iamandy.em',\n    age: 29,\n    height: '188cm',\n    weight: '80kg',\n    measurements: '111-78-100',\n    dimples: true,\n    physicalTraits: {\n      hair: 'short black hair, clean with layers',\n      face: 'square jawline with cute dimples when smiling',\n      eyes: 'sharp deep eyes with powerful gaze',\n      body: 'muscular with prominent chest and broad shoulders',\n      skin: 'healthy fair skin'\n    },\n    persona: 'powerful fitness trainer',\n    personality: 'strong, reliable, motivational, masculine, caring',\n    lifestyle: 'heavy lifting, bodybuilding, protein meals, active recovery',\n    contentPillars: ['heavy gym training', 'muscle showcase', 'strength training', 'fitness lifestyle', 'bodybuilding'],\n    visualStyle: 'gym settings, prominent muscle display, powerful poses, sweat, athletic gear, strength focus',\n    tone: 'motivational, powerful, masculine',\n    fixedDescription: 'Andy Park, 29, 188cm muscular body with prominent chest and broad shoulders, short black layered hair, square jawline with cute dimples when smiling, sharp deep powerful eyes, healthy fair skin'\n  }\n];\n\n// NEW theme to character mapping based on updated content directions\nconst themeCharacterMap = {\n  'travel': ['Olivia Kam', 'Piglet Chu'],\n  'fashion': ['Olivia Kam', 'Piglet Chu'],\n  'beach': ['Olivia Kam', 'Piglet Chu'],\n  'resort': ['Olivia Kam', 'Piglet Chu'],\n  'city': ['Piglet Chu', 'Olivia Kam'],\n  'ootd': ['Piglet Chu', 'Olivia Kam'],\n  'gym': ['Andy Park', 'Phoenix Yi'],\n  'workout': ['Andy Park', 'Phoenix Yi'],\n  'fitness': ['Phoenix Yi', 'Andy Park'],\n  'muscle': ['Andy Park', 'Phoenix Yi'],\n  'training': ['Andy Park', 'Phoenix Yi'],\n  'street': ['Phoenix Yi', 'Piglet Chu'],\n  'night': ['Phoenix Yi', 'Olivia Kam'],\n  'morning': ['Olivia Kam', 'Andy Park'],\n  'selfcare': ['Olivia Kam', 'Piglet Chu']\n};\n\n// Find best character for theme\nconst suitableCharacters = themeCharacterMap[recommendedTheme] || [];\nlet selectedIndex = dayIndex % humans.length;\n\nif (suitableCharacters.length > 0) {\n  const suitableIndices = suitableCharacters.map(name => \n    humans.findIndex(h => h.name === name)\n  ).filter(idx => idx !== -1);\n  \n  if (suitableIndices.length > 0) {\n    selectedIndex = suitableIndices[dayIndex % suitableIndices.length];\n  }\n}\n\nconst selected = humans[selectedIndex];\n\nreturn [{\n  json: {\n    date: today.toISOString().split('T')[0],\n    dayIndex,\n    recommendedTheme,\n    trendingHashtags,\n    contentAngles,\n    visualTrends,\n    seasonalTopics,\n    optimalPostTime: recommendation.optimalPostTime || '09:00',\n    engagementAnalysis: recommendation.engagementAnalysis || {},\n    human: selected\n  }\n}];"
+      },
+      "id": "rotate-human",
+      "name": "Rotate Digital Human",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "model": "openai/gpt-4o-mini",
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are a social media copywriter for AI influencers. Write an original Instagram caption between 100 and 150 words. Include 5-8 relevant hashtags at the end. Keep the tone aligned to the persona. If the character is Olivia or Piglet, focus on travel/fashion with subtle sensuality. If Andy or Phoenix, focus on fitness/gym with muscle showcase. Output only the caption and hashtags."
+            },
+            {
+              "role": "user",
+              "content": "=Write an Instagram caption for {{ $json.human.name }} ({{ $json.human.instagram }}), a {{ $json.human.age }}-year-old {{ $json.human.persona }}.\n\nToday's AI-recommended theme: {{ $json.recommendedTheme }}\nCharacter content focus: {{ $json.human.contentPillars.join(', ') }}\nTrending angles: {{ $json.contentAngles.join(', ') }}\nSeasonal topics: {{ $json.seasonalTopics.join(', ') }}\nOptimal tone: {{ $json.human.tone }}\nDate: {{ $json.date }}\n\nIMPORTANT DIRECTION:\n- Olivia/Piglet: Write about travel/fashion experiences with subtle sensuality and elegance\n- Andy/Phoenix: Write about gym/fitness with focus on muscle, strength, and motivation\n\nWrite between 100-150 words, include 5-8 relevant hashtags from: {{ $json.trendingHashtags.join(' ') }}.\nMake it feel personal, authentic, and aligned with the character's brand."
+            }
+          ],
+          "temperature": 0.8,
+          "max_tokens": 300
+        },
+        "options": {}
+      },
+      "id": "generate-caption",
+      "name": "Generate Caption",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        700,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_OPENROUTER_CREDENTIAL_ID",
+          "name": "OpenRouter API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const apiResponse = $input.first().json;\nconst caption = apiResponse.choices?.[0]?.message?.content || '';\nreturn [{\n  json: {\n    date: $('Rotate Digital Human').item.json.date,\n    dayIndex: $('Rotate Digital Human').item.json.dayIndex,\n    human: $('Rotate Digital Human').item.json.human,\n    caption: caption.trim()\n  }\n}];"
+      },
+      "id": "extract-caption",
+      "name": "Extract Caption",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "model": "openai/gpt-4o-mini",
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are an expert image prompt engineer specializing in photorealistic AI influencer content. Create ONE detailed, vivid image generation prompt (70-100 words). For female characters (Olivia/Piglet), focus on travel/fashion with subtle sensuality. For male characters (Andy/Phoenix), focus on gym/fitness with prominent muscle display. Output ONLY the prompt."
+            },
+            {
+              "role": "user",
+              "content": "=Create an Instagram photo prompt for {{ $json.human.name }} ({{ $json.human.instagram }}).\n\nPHYSICAL DESCRIPTION (MUST include ALL):\n{{ $json.human.fixedDescription }}\n\nCHARACTER TYPE: {{ $json.human.persona }}\nAI-RECOMMENDED THEME: {{ $json.recommendedTheme }}\nTRENDING VISUALS: {{ $json.visualTrends.join(', ') }}\nSEASONAL ELEMENTS: {{ $json.seasonalTopics.join(', ') }}\nCONTENT ANGLES: {{ $json.contentAngles.join(', ') }}\n\nIMPORTANT PROMPT DIRECTION:\n- Olivia/Piglet: Fashionable outfit, scenic travel location, elegant/sexy pose, natural lighting, stylish and slightly revealing\n- Andy/Phoenix: Gym setting, muscle definition prominently displayed, powerful pose, sweat, athletic wear, strength focus\n\nRequirements:\n- Include ALL physical traits listed above\n- Set in a {{ $json.recommendedTheme }} scene\n- Natural lighting, photorealistic, candid moment\n- Show realistic skin texture, pores, natural imperfections\n- Shallow depth of field, lifestyle photography style"
+            }
+          ],
+          "temperature": 0.8,
+          "max_tokens": 200
+        },
+        "options": {}
+      },
+      "id": "generate-image-prompt",
+      "name": "Generate Image Prompt",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1150,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_OPENROUTER_CREDENTIAL_ID",
+          "name": "OpenRouter API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const apiResponse = $input.first().json;\nconst imagePrompt = apiResponse.choices?.[0]?.message?.content || '';\nconst upstream = $('Extract Caption').item.json;\nreturn [{\n  json: {\n    date: upstream.date,\n    dayIndex: upstream.dayIndex,\n    human: upstream.human,\n    caption: upstream.caption,\n    imagePrompt: imagePrompt.trim()\n  }\n}];"
+      },
+      "id": "extract-image-prompt",
+      "name": "Extract Image Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1350,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst logEntry = {\n  timestamp: new Date().toISOString(),\n  date: item.date,\n  dayIndex: item.dayIndex,\n  humanName: item.human.name,\n  humanInstagram: item.human.instagram,\n  humanPersona: item.human.persona,\n  caption: item.caption,\n  imagePrompt: item.imagePrompt,\n  generatedText: item.generatedText || '',\n  imageFile: item.fileName || null,\n  imageSaved: item.imageSaved || false\n};\nreturn [{ json: logEntry }];"
+      },
+      "id": "format-log",
+      "name": "Format Log Entry",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1550,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "logString",
+              "value": "={{ JSON.stringify($json) }}\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "stringify-log",
+      "name": "Stringify Log",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        1750,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "jsonToBinary",
+        "options": {
+          "dataIsText": true,
+          "fileName": "={{ 'instagram-content-farm-' + $json.date + '.jsonl' }}",
+          "mimeType": "application/jsonl",
+          "useRawData": false
+        }
+      },
+      "id": "move-binary",
+      "name": "Move Binary Data",
+      "type": "n8n-nodes-base.moveBinaryData",
+      "typeVersion": 1,
+      "position": [
+        1950,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fileName": "=/Users/emofficemba/instagram-content-farm-logs/instagram-content-farm-{{ $json.date }}.jsonl",
+        "options": {}
+      },
+      "id": "6de3eb30-bb62-43d7-92e2-ca67e5b51fda",
+      "name": "Write Log File",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        2150,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n// Instagram Business Account IDs - you need to get these from Facebook Business Manager\nconst accountMap = {\n  'iamolivia.k': 'YOUR_OLIVIA_ACCOUNT_ID',\n  'iampiglet.g': 'YOUR_PIGLET_ACCOUNT_ID',\n  'iamandy.em': 'YOUR_ANDY_ACCOUNT_ID',\n  'iamphoenix.y': 'YOUR_PHOENIX_ACCOUNT_ID'\n};\n\nreturn [{\n  json: {\n    date: item.date,\n    dayIndex: item.dayIndex,\n    human: item.human,\n    caption: item.caption,\n    imagePrompt: item.imagePrompt,\n    instagramHandle: item.human.instagram,\n    instagramAccountId: accountMap[item.human.instagram] || '',\n    imageUrl: item.imageUrl || ''\n  }\n}];"
+      },
+      "id": "0eed66bf-1053-438f-9b8c-df0f440957a2",
+      "name": "Prepare Instagram Post",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1350,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v18.0/{{ $json.instagramAccountId }}/media",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "caption": "={{ $json.caption }}",
+          "image_url": "={{ $json.imageUrl }}",
+          "access_token": "={{ $credentials.httpHeaderAuth.password }}"
+        },
+        "options": {}
+      },
+      "id": "8ea76f66-c1ac-4963-b4a3-4e7f973e9ebb",
+      "name": "Post to Instagram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1550,
+        500
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_INSTAGRAM_GRAPH_API_CREDENTIAL_ID",
+          "name": "Instagram Graph API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v18.0/{{ $json.instagramAccountId }}/media?fields=id,caption,like_count,comments_count,timestamp,media_type,media_url,permalink&limit=50",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": false,
+        "options": {}
+      },
+      "id": "008e0eba-68c7-45fb-ac79-c8ec33451adf",
+      "name": "Fetch Engagement Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        250,
+        700
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_INSTAGRAM_GRAPH_API_CREDENTIAL",
+          "name": "Instagram Graph API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Content Recommendation Engine - Big Data Analytics\nconst today = new Date();\nconst dayOfWeek = today.getDay();\n\n// Historical performance data (from engagement API)\nconst engagementData = $input.all()[0]?.json || {};\nconst media = engagementData.data || [];\n\n// Analyze which themes performed best\nconst themePerformance = {};\nconst keywordMap = {\n  'morning': ['morning', '\u65e9\u5b89', 'wake up', '\u8d77\u5e8a', 'breakfast'],\n  'coffee': ['coffee', '\u5496\u5561', 'cafe', '\u5496\u5561\u5e97', 'latte'],\n  'gym': ['gym', 'workout', 'fitness', '\u5065\u8eab', 'training', 'exercise'],\n  'cooking': ['cooking', 'food', '\u716e\u98ef', '\u7f8e\u98df', 'cook', 'recipe'],\n  'night': ['night', 'evening', '\u665a\u4e0a', 'relax', 'bedtime', 'sleep'],\n  'street': ['street', 'ootd', 'fashion', '\u7a7f\u642d', 'outfit', 'style'],\n  'skincare': ['skincare', 'skin', '\u8b77\u819a', 'beauty', 'glow', 'routine'],\n  'selfcare': ['selfcare', 'sunday', '\u907a\u7642', 'heal', 'rest', 'mental health']\n};\n\n// Score each post by engagement rate\nmedia.forEach(post => {\n  const caption = post.caption || '';\n  const likes = post.like_count || 0;\n  const comments = post.comments_count || 0;\n  const engagement = likes + (comments * 3); // Weight comments more\n  \n  Object.entries(keywordMap).forEach(([theme, keywords]) => {\n    if (keywords.some(kw => caption.toLowerCase().includes(kw.toLowerCase()))) {\n      if (!themePerformance[theme]) themePerformance[theme] = { total: 0, count: 0 };\n      themePerformance[theme].total += engagement;\n      themePerformance[theme].count += 1;\n    }\n  });\n});\n\n// Calculate average performance per theme\nconst scoredThemes = Object.entries(themePerformance).map(([theme, data]) => ({\n  theme,\n  avgEngagement: data.count > 0 ? Math.round(data.total / data.count) : 0,\n  postCount: data.count\n}));\n\n// Sort by performance\nscoredThemes.sort((a, b) => b.avgEngagement - a.avgEngagement);\n\n// Day-based theme mapping\nconst dayThemes = {\n  0: 'selfcare',      // Sunday\n  1: 'coffee',        // Monday\n  2: 'gym',           // Tuesday\n  3: 'cooking',       // Wednesday\n  4: 'night',         // Thursday\n  5: 'street',        // Friday\n  6: 'morning'        // Saturday\n};\n\n// Get top performing themes\nconst topThemes = scoredThemes.slice(0, 3).map(t => t.theme);\nconst defaultTheme = dayThemes[dayOfWeek] || 'morning';\n\n// If we have data, use best performing theme that matches today's vibe\nconst recommendedTheme = topThemes.length > 0 && topThemes.includes(defaultTheme) \n  ? defaultTheme \n  : (topThemes[0] || defaultTheme);\n\n// Determine optimal posting time based on day and historical performance\nconst optimalTimes = {\n  0: '10:00', 1: '08:00', 2: '18:00', 3: '12:00',\n  4: '21:00', 5: '15:00', 6: '11:00'\n};\n\n// Seasonal/trending topics (can be enhanced with external API)\nconst seasonalTopics = {\n  'summer': ['beach', 'vacation', 'refreshing', 'summer glow'],\n  'winter': ['cozy', 'warm', 'hygge', 'winter skincare'],\n  'spring': ['bloom', 'fresh start', 'detox', 'new beginnings'],\n  'autumn': ['fall vibes', 'pumpkin', 'sweater weather', 'warm tones']\n};\n\nconst month = today.getMonth();\nlet season = 'spring';\nif (month >= 5 && month <= 7) season = 'summer';\nelse if (month >= 8 && month <= 10) season = 'autumn';\nelse if (month >= 11 || month <= 1) season = 'winter';\n\nreturn [{\n  json: {\n    date: today.toISOString().split('T')[0],\n    dayOfWeek,\n    recommendedTheme,\n    alternativeThemes: topThemes.filter(t => t !== recommendedTheme).slice(0, 2),\n    optimalPostTime: optimalTimes[dayOfWeek] || '09:00',\n    seasonalTopics: seasonalTopics[season] || [],\n    currentSeason: season,\n    engagementAnalysis: {\n      totalPostsAnalyzed: media.length,\n      topPerformingThemes: scoredThemes.slice(0, 5),\n      rawData: themePerformance\n    }\n  }\n}];"
+      },
+      "id": "6d7879af-93f0-4d39-90ad-f1ebf96ddaea",
+      "name": "Content Recommender",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "model": "openai/gpt-4o-mini",
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are a social media trend analyst specializing in Instagram content strategy for AI influencers. Analyze current trends and recommend content. Output ONLY a JSON object with: trendingTopics (array), recommendedHashtags (array of 10), contentAngles (array), visualTrends (array), optimalCaptionTone (string)."
+            },
+            {
+              "role": "user",
+              "content": "=Analyze Instagram trends for {{ $json.recommendedTheme }} content in {{ $json.currentSeason }}. Today's date: {{ $json.date }}. Suggest trending topics, hashtags, content angles, and visual trends. Consider seasonal topics: {{ $json.seasonalTopics.join(', ') }}."
+            }
+          ],
+          "temperature": 0.7,
+          "max_tokens": 600,
+          "response_format": {
+            "type": "json_object"
+          }
+        },
+        "options": {}
+      },
+      "id": "39833d0d-0f95-48a4-a0b7-c7e218f23cd3",
+      "name": "AI Trend Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        700,
+        600
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_OPENROUTER_CREDENTIAL_ID",
+          "name": "OpenRouter API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const apiResponse = $input.first().json;\nconst trendData = apiResponse.choices?.[0]?.message?.content || '{}';\nlet parsedTrend = {};\ntry {\n  parsedTrend = JSON.parse(trendData);\n} catch (e) {\n  parsedTrend = { error: 'Failed to parse trend data', raw: trendData };\n}\n\nconst recommendation = $('Content Recommender').item.json;\n\nreturn [{\n  json: {\n    date: recommendation.date,\n    dayOfWeek: recommendation.dayOfWeek,\n    recommendedTheme: recommendation.recommendedTheme,\n    alternativeThemes: recommendation.alternativeThemes,\n    optimalPostTime: recommendation.optimalPostTime,\n    seasonalTopics: recommendation.seasonalTopics,\n    currentSeason: recommendation.currentSeason,\n    engagementAnalysis: recommendation.engagementAnalysis,\n    trendAnalysis: parsedTrend\n  }\n}];"
+      },
+      "id": "e4958800-4d39-47bf-8f83-49ef6eb2409a",
+      "name": "Parse Trend Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "body": {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "={{ $json.imagePrompt }}"
+                }
+              ]
+            }
+          ],
+          "generationConfig": {
+            "responseModalities": [
+              "TEXT",
+              "IMAGE"
+            ],
+            "responseMimeType": "text/plain"
+          }
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "587bae38-11af-418f-a12d-86a9d6cf2d10",
+      "name": "Generate Image with Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1550,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_GEMINI_API_KEY_CREDENTIAL",
+          "name": "Gemini API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nlet imageBase64 = null;\nlet generatedText = '';\n\ntry {\n  // Gemini returns image data in candidates[0].content.parts\n  const parts = response?.candidates?.[0]?.content?.parts || [];\n  \n  for (const part of parts) {\n    if (part.inlineData && part.inlineData.data) {\n      imageBase64 = part.inlineData.data;\n    }\n    if (part.text) {\n      generatedText = part.text;\n    }\n  }\n} catch (e) {\n  console.log('Error parsing Gemini response:', e);\n}\n\nconst upstream = $('Extract Image Prompt').item.json;\n\nreturn [{\n  json: {\n    date: upstream.date,\n    dayIndex: upstream.dayIndex,\n    human: upstream.human,\n    caption: upstream.caption,\n    imagePrompt: upstream.imagePrompt,\n    generatedText: generatedText,\n    imageBase64: imageBase64,\n    imageUrl: imageBase64 ? `data:image/png;base64,${imageBase64}` : null\n  }\n}];"
+      },
+      "id": "5ce09269-f19f-4753-b2a5-0090e56d9ff3",
+      "name": "Extract Gemini Image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1750,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst imageBase64 = item.imageBase64;\nconst human = item.human;\nconst date = item.date;\n\nif (!imageBase64) {\n  return [{ json: { ...item, imageSaved: false, imagePath: null } }];\n}\n\n// We'll use n8n's Write Binary File node instead\n// This node just prepares the data\nreturn [{\n  json: {\n    ...item,\n    imageSaved: true,\n    fileName: `${human.instagram}_${date}.png`\n  }\n}];"
+      },
+      "id": "9d274fe9-4cb8-4794-af70-ac05a120b609",
+      "name": "Prepare Image Save",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1950,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "jsonToBinary",
+        "options": {
+          "dataIsText": false,
+          "fileName": "={{ $json.fileName }}",
+          "mimeType": "image/png",
+          "useRawData": true
+        }
+      },
+      "id": "d02931e5-c52b-4c22-b8d4-38bfb9ab6ed2",
+      "name": "Image to Binary",
+      "type": "n8n-nodes-base.moveBinaryData",
+      "typeVersion": 1,
+      "position": [
+        2150,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fileName": "=/Users/emofficemba/digital-human-images/{{ $json.fileName }}",
+        "options": {}
+      },
+      "id": "2f640c67-9740-4b19-85db-3a147d73e988",
+      "name": "Save Image to Disk",
+      "type": "n8n-nodes-base.writeBinaryFile",
+      "typeVersion": 1,
+      "position": [
+        2350,
+        300
+      ]
+    }
+  ],
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "connections": {
+    "Daily 8AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Rotate Digital Human",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Engagement Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rotate Digital Human": {
+      "main": [
+        [
+          {
+            "node": "Generate Caption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Caption": {
+      "main": [
+        [
+          {
+            "node": "Extract Caption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Caption": {
+      "main": [
+        [
+          {
+            "node": "Generate Image Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image Prompt": {
+      "main": [
+        [
+          {
+            "node": "Extract Image Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Image Prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate Image with Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Log Entry": {
+      "main": [
+        [
+          {
+            "node": "Stringify Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stringify Log": {
+      "main": [
+        [
+          {
+            "node": "Move Binary Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move Binary Data": {
+      "main": [
+        [
+          {
+            "node": "Write Log File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Instagram Post": {
+      "main": [
+        [
+          {
+            "node": "Post to Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Engagement Data": {
+      "main": [
+        [
+          {
+            "node": "Content Recommender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Recommender": {
+      "main": [
+        [
+          {
+            "node": "AI Trend Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Trend Analysis": {
+      "main": [
+        [
+          {
+            "node": "Parse Trend Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Trend Data": {
+      "main": [
+        [
+          {
+            "node": "Rotate Digital Human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image with Gemini": {
+      "main": [
+        [
+          {
+            "node": "Extract Gemini Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Gemini Image": {
+      "main": [
+        [
+          {
+            "node": "Prepare Image Save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Image Save": {
+      "main": [
+        [
+          {
+            "node": "Image to Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image to Binary": {
+      "main": [
+        [
+          {
+            "node": "Save Image to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Image to Disk": {
+      "main": [
+        [
+          {
+            "node": "Format Log Entry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "id": "50b0bc94-a120-4e03-9fbb-9aa4d805a043"
+}
