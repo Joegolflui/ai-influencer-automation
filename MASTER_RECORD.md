@@ -1,6 +1,6 @@
 # AI Influencer Pipeline — 6 IG 帳號完整主記錄
 
-> **最後更新:** 2026-06-23  
+> **最後更新:** 2026-06-23 (品牌指引更新)  
 > **記錄目的:** 防止記憶丟失，統一管理6個AI Influencer IG帳號的所有關鍵資訊  
 > **⚠️ 安全提醒:** 真實 Access Token 已從本文件移除，請參考下方「憑證存放位置」取得
 
@@ -45,7 +45,7 @@
 - **參考照片:** `IMG_0077.JPG`（正面清晰、長波浪棕色髮、東亞女性）
 - **參考目錄:** `~/ai-influencer-ref/julia/`
 - **地點:** Santorini, Bali, Maldives, Tokyo, Paris, Mallorca
-- **品牌:** Chanel, Versace, YSL, Dior, Hermes
+- **品牌:** Chanel, Versace, YSL, Dior, Hermes, **Louis Vuitton, Gucci, Prada**
 - **內容支柱:** luxury resorts, designer fashion, scenic destinations, sunset vibes, poolside elegance
 - **語調:** elegant, confident, aspirational
 
@@ -56,7 +56,7 @@
 - **參考照片:** `edan-1.jpg`（側面、短髮、東亞男性）
 - **參考目錄:** `~/ai-influencer-ref/edan/`
 - **地點:** Bali, Maldives, Santorini, Tokyo
-- **品牌:** Loro Piana, Brunello Cucinelli, Ralph Lauren Purple Label
+- **品牌:** Loro Piana, Brunello Cucinelli, Ralph Lauren Purple Label, **Louis Vuitton, Gucci, Prada**
 - **內容支柱:** culinary arts, luxury travel, fine dining, resort life
 - **語調:** sophisticated, warm, cultured
 
@@ -68,7 +68,8 @@
 - **罩杯:** D cup
 - **酒窩:** ✅
 - **髮型:** Short black bob with slight mess and layers
-- **風格:** Cute, lively, young fashion
+- **風格:** Cute, lively, young fashion, **streetwear mix**
+- **品牌:** **Nike, Adidas, local street brands, casual designer**
 - **內容支柱:** street fashion, cafe hopping, travel vlogs, daily life
 - **語調:** playful, energetic, cute
 
@@ -84,7 +85,8 @@
 - **眼睛:** Large clear eyes with watery shine
 - **嘴唇:** Naturally plump pink lips
 - **膚色:** Extremely fair porcelain skin
-- **風格:** Elegant, sexy, luxury
+- **風格:** Elegant, sexy, luxury, **high-low fashion mix**
+- **品牌:** **Chanel, Dior, Nike, Adidas, Prada, streetwear labels**
 - **內容支柱:** travel adventures, fashion looks, sexy elegant style, luxury lifestyle, beach and resort
 - **語調:** elegant, subtly seductive, confident
 
@@ -92,13 +94,15 @@
 - **年齡:** 27
 - **族裔:** Korean
 - **風格參考:** `jaeyoungjoon`（肌肉、旅行、陽光、勵志）
-- **風格:** Muscular, travel, sunshine, aspirational
+- **風格:** Muscular, travel, sunshine, aspirational, **athleisure**
+- **品牌:** **Nike, Adidas, Lululemon, Gymshark, Under Armour**
 - **內容支柱:** gym workouts, outdoor fitness, beach sports, protein lifestyle
 - **語調:** confident, energetic, motivational
 
 ### 6. Phoenix Yi (`iamphoenix.y`)
 - **年齡:** 28
 - **風格:** Powerful, rugged, outdoor adventure
+- **品牌:** **The North Face, Patagonia, Arc'teryx, Nike, outdoor brands**
 - **內容支柱:** strength training, mountain climbing, extreme sports, wilderness
 - **語調:** strong, adventurous, fearless
 
@@ -170,6 +174,34 @@
 
 ---
 
+## 👕 品牌指引（Brand Guidelines）
+
+> **核心原則:** 不限於傳統高級品牌，必須混搭平民/街頭品牌，增加真實感與時尚度。
+
+### 高級品牌（Luxury）
+Chanel, Versace, YSL, Dior, Hermes, Louis Vuitton, Gucci, Prada, Loro Piana, Brunello Cucinelli, Ralph Lauren Purple Label
+
+### 平民/街頭品牌（Streetwear / Casual）
+Nike, Adidas, Lululemon, Gymshark, Under Armour, The North Face, Patagonia, Arc'teryx, Supreme, Stüssy, local street brands
+
+### 時裝拼搭源泉
+- 街頭攝影時裝（Street-style photography）
+- 品牌官方網店新品頁（e.g. nike.com, adidas.com, gucci.com）
+- 時尚博主/網紅穿搭分享
+- 實景拍攝：咖啡廳、街角、海灘、健身房
+
+### 每個 Persona 品牌定位
+| Persona | 主力品牌 | 可混搭平民品牌 |
+|---------|-----------|----------------|
+| Julia | Chanel, Versace, YSL, Dior, Hermes, LV, Gucci, Prada | ✅ 可添加街頭元素 |
+| Edan | Loro Piana, Brunello Cucinelli, Ralph Lauren, LV, Gucci, Prada | ✅ 非正式場合可穿街頭 |
+| Piglet | Nike, Adidas, local street, casual designer | ✅ 以街頭為主 |
+| Olivia | Chanel, Dior, Prada, streetwear labels | ✅ High-low mix 重點 |
+| Andy | Nike, Adidas, Lululemon, Gymshark, Under Armour | ✅ 運動風為主 |
+| Phoenix | The North Face, Patagonia, Arc'teryx, Nike | ✅ 戶外功能為主 |
+
+---
+
 ## ⚠️ 重要規則
 
 1. **永遠使用 Gemini API 於當前設備**（Green Bull Bot），**禁止**使用 5090/Red Bull Bot
@@ -178,8 +210,9 @@
 4. **重用高質量圖片**，避免浪費 generation
 5. **發布前檢查 face 一致性**
 6. **使用真實品牌名稱** 避免 safety filter
-7. **定期備份憑證** 到安全位置
-8. **n8n workflow 必須用 Kimi Code / Claude Code / Codex 生成**，禁止手寫 JSON
+7. **必須混搭平民/街頭品牌** 增加時尚真實感，不可只用傳統高級品牌
+8. **定期備份憑證** 到安全位置
+9. **n8n workflow 必須用 Kimi Code / Claude Code / Codex 生成**，禁止手寫 JSON
 
 ---
 
