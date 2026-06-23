@@ -89,6 +89,105 @@
 
 ---
 
+---
+
+## 👕 品牌服裝圖下載 + Image-to-Image 流程（新增）
+
+> **用戶要求:** 不可只靠文字描述，必須下載真實品牌服裝圖片作為 image-to-image 參考，增加時尚度與真實感。
+
+### Step A: 下載品牌服裝圖
+
+**來源:**
+1. 品牌官方網店新品頁（nike.com, adidas.com, gucci.com, prada.com 等）
+2. 街頭攝影時裝博主（Instagram / Pinterest）
+3. 時尚雜誌網站（Vogue, Elle, Harpers Bazaar）
+
+**`下載方法（瀏覽器）:`**
+```python
+# 瀏覽品牌網店，下載服裝參考圖
+# 例如: Nike 官網 新品頁
+browser_navigate("https://www.nike.com/w/new-3n82y")
+# 擷取服裝圖片下載
+```
+
+**`下載後存放:`**
+```
+~/ai-influencer-ref/clothing/
+  julia/
+    versace-swimsuit-001.jpg
+    gucci-dress-002.jpg
+  edan/
+    loro-piana-shirt-001.jpg
+    nike-techwear-002.jpg
+  ...
+```
+
+### Step B: 服裝分析（Clothing Analysis）
+
+**生成前必須做服裝分析！** 用 `vision_analyze` 分析現有已發布圖片，提取：
+- 顏色調色板
+- 常用布料
+- 品牌 signature
+- 衣物類型
+- 風格模式
+
+**`建立 clothing database:`**
+```bash
+# 每個 persona 獨立 clothing database
+references/clothing-database-{persona}.md
+```
+
+### Step C: Image-to-Image 生成（使用服裝參考）
+
+**核心技術: Chain Reference**
+```
+Shot 1:  Julia face ref + 服裝參考圖  →  生成（確立臉 + 衣服）
+Shot 2:  Shot 1 圖片  →  生成（繼承臉 + 衣服）
+Shot 3:  Shot 1 圖片  →  生成（繼承臉 + 衣服）
+Shot 4:  Shot 1 圖片  →  生成（繼承臉 + 衣服）
+```
+
+**API Payload（使用服裝參考）:**
+```json
+{
+  "contents": [{
+    "parts": [
+      {"inlineData": {"mimeType": "image/jpeg", "data": "JULIA_FACE_REF_B64"}},
+      {"inlineData": {"mimeType": "image/jpeg", "data": "CLOTHING_REF_B64"}},
+      {"text": "Same exact woman, same face. Wearing this outfit. [scene]. Leica M10, 90mm."}
+    ]
+  }],
+  "generationConfig": {"responseModalities": ["Text", "Image"]}
+}
+```
+
+**Shots 2-4（用 Shot 1 作為參考）:**
+```json
+{
+  "contents": [{
+    "parts": [
+      {"inlineData": {"mimeType": "image/jpeg", "data": "SHOT1_B64"}},
+      {"text": "Same exact woman, same face, same outfit. [pose/scene change only]. Leica M10, 50mm."}
+    ]
+  }]
+}
+```
+
+### 品牌混搭規則（Brand Mix）
+
+| Persona | 奢華品牌 | 街頭/運動品牌 |
+|---------|---------|-------------|
+| Julia | Chanel, Versace, YSL, Dior, Hermes, LV, Gucci, Prada | Nike, Adidas（點綴） |
+| Edan | Loro Piana, Brunello Cucinelli, Ralph Lauren, LV | Nike, Adidas, Off-White（非正式） |
+| Piglet | — | **Nike, Adidas 為主** — 街頭風 |
+| Olivia | Chanel, Dior, Prada | **Nike, Adidas, Supreme — High-low mix** |
+| Andy | — | **Nike, Adidas, Lululemon, Gymshark — 運動風** |
+| Phoenix | — | **The North Face, Patagonia, Arc'teryx — 戶外** |
+
+**`每套衣服必須混搭至少 2 個品牌層級！`**
+
+---
+
 ## Image Generation Pipeline
 
 ### Step 1: 準備 API Key
