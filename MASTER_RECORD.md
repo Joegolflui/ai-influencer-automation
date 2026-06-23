@@ -10,12 +10,12 @@
 
 | # | Persona | IG Handle | 類型 | Page ID | IG Business ID | 狀態 | Posts |
 |---|---------|-----------|------|---------|----------------|------|-------|
-| 1 | **Julia Lui** | `julia.lui.ig` / `julialui628` | Luxury Travel + Fashion | `2093043784340839` | `17841448618621779` | ✅ Active | 17 posts |
-| 2 | **Edan Lu** | `edanlu.jp` | Luxury Travel + Mens | `358558740683460` | `17841424208132858` | ✅ Active | 7 posts |
-| 3 | **Piglet Chu** | `iampiglet.g` | Fashion/Travel | `1145207708679853` | — | 🔲 Pending | 0 |
-| 4 | **Olivia Kam** | `iamolivia.k` | Fashion/Travel | `1103643402839891` | — | 🔲 Pending | 0 |
-| 5 | **Andy Park** | `iamandy.em` | Gym/Fitness | `1093999120474280` | — | 🔲 Pending | 0 |
-| 6 | **Phoenix Yi** | `iamphoenix.y` | Gym/Fitness | `1112505928620181` | — | 🔲 Pending | 0 |
+| 1 | **Julia Lui** | `julia.lui.ig` / `julialui628` | Luxury Travel + Fashion | `2093043784340839` | `17841448618621779` | ✅ Active | 16 media |
+| 2 | **Edan Lu** | `edanlu.jp` | Luxury Travel + Mens | `358558740683460` | `17841424208132858` | ✅ Active | 7 media |
+| 3 | **Piglet Chu** | `iampiglet.g` | Fashion/Travel | `1145207708679853` | `17841424759535803` | ✅ Active | 9 media |
+| 4 | **Olivia Kam** | `iamolivia.k` | Fashion/Travel | `1103643402839891` | `17841403006909543` | ✅ Active | 9 media |
+| 5 | **Andy Park** | `iamandy.em` | Gym/Fitness | `1093999120474280` | `17841410985341885` | ✅ Active | 9 media |
+| 6 | **Phoenix Yi** | `iamphoenix.y` | Gym/Fitness | `1112505928620181` | `17841419378546538` | ✅ Active | 9 media |
 
 ---
 
@@ -25,9 +25,9 @@
 
 | 檔案路徑 | 內容 | 帳號數量 |
 |----------|------|----------|
-| `~/instagram_api_credentials.json` | Page ID + IG Business ID + Token | 2 (Julia, Edan) |
+| `~/instagram_api_credentials.json` | Page ID + IG Business ID + Token | 2 (Julia, Edan) — 註：其余4個帳號的 IG Business ID 可直接從 Graph API 查詢 |
 | `~/edan_instagram_credentials.txt` | Edan 專用 App ID / App Secret / Token | 1 (Edan) |
-| `~/instagram-auto-delete/playwright-scripts/fb_page_tokens_long_lived.txt` | **全部6個帳號**的 Long-Lived Page Access Token | 6 |
+| `~/instagram-auto-delete/playwright-scripts/fb_page_tokens_long_lived.txt` | **全部6個帳號**的 Long-Lived Page Access Token + IG Business ID | 6 |
 | `~/instagram-auto-delete/playwright-scripts/fb_page_tokens.txt` | 舊版 Token（標記為 FAILED） | 6 |
 
 ### App 層級憑證
@@ -117,8 +117,12 @@
 │   ├── instagram-api-setup.md        # Graph API 設定指南
 │   └── instagram-link-guide.md       # IG 連結 FB 專頁指南
 ├── images/
-│   ├── julia-lui/images/             # 17 posts × 4 shots = 68 images
-│   └── edan-lu/images/               # 7 posts × 4 shots = 28 images
+│   ├── julia-lui/images/             # 16 media × 4 shots = 64 images
+│   ├── edan-lu/images/               # 7 media × 4 shots = 28 images
+│   ├── iampiglet.g/                  # 9 media × 部分 shots
+│   ├── iamolivia.k/                  # 9 media × 部分 shots
+│   ├── iamandy.em/                   # 9 media × 部分 shots
+│   └── iamphoenix.y/                 # 9 media × 部分 shots
 └── workflows/
     ├── kimi-workflow-v7.json
     └── kimi-workflow-gemini-only.json
@@ -183,14 +187,14 @@
 
 | 帳號 | 已發 Posts | 已發 Images | 狀態 |
 |------|-----------|-------------|------|
-| Julia Lui | 17 | 68 | ✅ 運作中 |
-| Edan Lu | 7 | 28 | ✅ 運作中 |
-| Piglet Chu | 0 | 0 | 🔲 待連結 FB 專頁 + 取得 Token |
-| Olivia Kam | 0 | 0 | 🔲 待連結 FB 專頁 + 取得 Token |
-| Andy Park | 0 | 0 | 🔲 待連結 FB 專頁 + 取得 Token |
-| Phoenix Yi | 0 | 0 | 🔲 待連結 FB 專頁 + 取得 Token |
+| Julia Lui | 16 media | 68 | ✅ 運作中 |
+| Edan Lu | 7 media | 28 | ✅ 運作中 |
+| Piglet Chu | 9 media | 16 | ✅ 運作中 |
+| Olivia Kam | 9 media | 16 | ✅ 運作中 |
+| Andy Park | 9 media | 16 | ✅ 運作中 |
+| Phoenix Yi | 9 media | 16 | ✅ 運作中 |
 
-**總計:** 24 posts / 96 images / 2 of 6 active
+**總計:** 50 posts / 160 images / 6 of 6 active
 
 ---
 
