@@ -1,0 +1,230 @@
+{
+  "name": "Content Research Master (Mon/Wed/Fri)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "c4a053ef-88cd-4eaa-8819-ba73a355761a",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1,3,5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "8b2b09ff-8bc2-4d51-997d-a3de88cf4e2e",
+      "name": "Read Active Personas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        200
+      ],
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst config = JSON.parse(fs.readFileSync('/Users/emofficemba/ai-content-farm/config/master-config.json', 'utf8'));\n\nconst items = [];\nfor (const [key, persona] of Object.entries(config.personas)) {\n  if (persona.active) {\n    items.push({\n      json: {\n        persona_key: key,\n        persona_name: persona.name,\n        ig_handle: persona.ig_handle,\n        gender: persona.gender,\n        style_tags: persona.style_tags,\n        outfit_prefs: persona.outfit_preferences,\n        locations: persona.locations,\n        photo_specs: config.system.photography,\n        lens_rotation: config.system.lens_rotation_groups\n      }\n    });\n  }\n}\nreturn items;"
+      }
+    },
+    {
+      "id": "c40dd43d-9c35-47ad-9757-fe02faf6f5e7",
+      "name": "Kimi Research",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/research",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"persona_key\":\"={{$json.persona_key}}\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "3120c569-864f-40f0-9946-4a88bf3d7446",
+      "name": "Generate 3 Captions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        200
+      ],
+      "parameters": {
+        "jsCode": "const persona = $input.first().json.persona_name;\nconst concept = $input.first().json.concept || {};\nconst gender = $input.first().json.gender || 'female';\n\n// 語錄式 caption 模板\nconst captions = [];\n\n// Caption 1: 感性治癒\nconst mood = gender === 'female' \n  ? ['柔軟', '溫暖', '細膩', '精致', '自在']\n  : ['干練', '沉穩', '瀑洗', '坤士', '瀑流'];\nconst m1 = mood[Math.floor(Math.random() * mood.length)];\ncaptions.push(`${m1}是一種選擇，也是一種力量。\n\n今天的我，選擇了${concept.outfit || '喜歡的樣子'}。\n\n你們今天選擇了什麼？`);\n\n// Caption 2: 場景感慨\nconst places = concept.location ? concept.location.split(/[,，]/) : ['這裡'];\nconst place = places[0].trim();\ncaptions.push(`每一次來${place}，都覺得被治癒了一點。\n\n陽光、風、還有這身${concept.outfit || '簡單的穿搭'}——不用太用力，就能融入。\n\n你們最愛的小地方是哪裡？`);\n\n// Caption 3: 自我表達\nconst verbs = gender === 'female'\n  ? ['笑得很甜', '走得很慢', '看得很遠']\n  : ['跑得很快', '站得很直', '想得很透'];\nconst v1 = verbs[Math.floor(Math.random() * verbs.length)];\ncaptions.push(`有些時候，美不是穿什麼，而是怎麼感受自己。\n\n${v1}，就是今天最好的樣子。\n\n告訴我，你們今天過得怎麼樣？`);\n\nreturn [{\n  json: {\n    persona: $input.first().json.persona_name,\n    persona_key: $input.first().json.persona_key,\n    ig_handle: $input.first().json.ig_handle,\n    concept: concept,\n    lenses: $input.first().json.lenses || ['90mm','50mm','35mm','28mm'],\n    captions: captions,\n    photo_specs: $input.first().json.photo_specs,\n    generated_at: new Date().toISOString()\n  }\n}];"
+      }
+    },
+    {
+      "id": "2ca9705f-0a3f-4a10-aa17-d6ae1f78b8e2",
+      "name": "Save to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.3,
+      "position": [
+        1080,
+        200
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "cachedResultName": "Content Farm"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Pending_Review"
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "A",
+              "fieldValue": "={{$json.generated_at}}"
+            },
+            {
+              "fieldId": "B",
+              "fieldValue": "={{$json.persona}}"
+            },
+            {
+              "fieldId": "C",
+              "fieldValue": "={{$json.ig_handle}}"
+            },
+            {
+              "fieldId": "D",
+              "fieldValue": "={{$json.concept.brand || ''}}"
+            },
+            {
+              "fieldId": "E",
+              "fieldValue": "={{$json.concept.outfit || ''}}"
+            },
+            {
+              "fieldId": "F",
+              "fieldValue": "={{$json.concept.location || ''}}"
+            },
+            {
+              "fieldId": "G",
+              "fieldValue": "={{$json.concept.footwear || ''}}"
+            },
+            {
+              "fieldId": "H",
+              "fieldValue": "={{$json.concept.english_prompt || ''}}"
+            },
+            {
+              "fieldId": "I",
+              "fieldValue": "={{$json.captions[0]}}"
+            },
+            {
+              "fieldId": "J",
+              "fieldValue": "={{$json.captions[1]}}"
+            },
+            {
+              "fieldId": "K",
+              "fieldValue": "={{$json.captions[2]}}"
+            },
+            {
+              "fieldId": "L",
+              "fieldValue": "={{$json.lenses.join(', ')}}"
+            },
+            {
+              "fieldId": "M",
+              "fieldValue": "PENDING"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "175eff6a-84c4-4621-8387-1e4869c4f426",
+      "name": "Telegram Notify",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1300,
+        200
+      ],
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "📝 新內容已生成待審核\n\nPersona: {{$json.persona}}\nIG: @{{$json.ig_handle}}\n\n題材: {{$json.concept.brand}} + {{$json.concept.outfit}}\n場景: {{$json.concept.location}}\n\n請到 Google Sheets 審核後，流程才會生成圖片並發布。"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Active Personas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Active Personas": {
+      "main": [
+        [
+          {
+            "node": "Kimi Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kimi Research": {
+      "main": [
+        [
+          {
+            "node": "Generate 3 Captions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate 3 Captions": {
+      "main": [
+        [
+          {
+            "node": "Save to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Telegram Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {},
+  "meta": null,
+  "tags": []
+}

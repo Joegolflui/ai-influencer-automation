@@ -1,0 +1,354 @@
+{
+  "name": "Image Gen & Post (Approved Only)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "b4b07e70-5710-4bb6-8a8f-b4ffd9433678",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        200
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ig-content-approved",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "id": "79b89e33-a323-4a5b-a9ff-d826afaeee69",
+      "name": "Read Approved Content",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.3,
+      "position": [
+        420,
+        200
+      ],
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $env.GOOGLE_SHEET_ID }}",
+          "cachedResultName": "Content Farm"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Approved"
+        },
+        "filtersUi": {
+          "filterValues": [
+            {
+              "key": "Status",
+              "value": "APPROVED"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "76373f36-db89-4b0d-ba54-66a6c4070f86",
+      "name": "Build 4 Image Prompts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        200
+      ],
+      "parameters": {
+        "jsCode": "const row = $input.first().json;\nconst persona = row.Persona;\nconst outfit = row.Outfit;\nconst location = row.Location;\nconst prompt_base = row.EnglishPrompt;\nconst lenses = row.Lenses ? row.Lenses.split(', ') : ['90mm','50mm','35mm','28mm'];\n\nconst lensDetails = {\n  '90mm': 'Leica APO-Summicron-M 90mm f/2 ASPH.',\n  '50mm': 'Leica Summilux-M 50mm f/1.4 ASPH.',\n  '35mm': 'Leica Summilux-M 35mm f/1.4 ASPH.',\n  '28mm': 'Leica Summicron-M 28mm f/2 ASPH'\n};\n\nconst photoStyle = \"電影感光影、寫實攝影、柔焦、淺景深、自然光、抓拍感、日系風格模特兒攝影，Leica 風格。Ultra-realistic high-fidelity natural skin texture (visible fine pores, natural fine lines, subtle skin grain). Unretouched, healthy and translucent skin tone, realistic subsurface scattering, subtle oil sheen on the T-zone. cinematic natural lighting, no plastic look. 不使用過度磨皮、沒有塑膠感、沒有虛假的美白與濾鏡效果，無過度飽和的假光澤。IG 4:5。\";\n\nconst prompts = lenses.map((lens, idx) => {\n  return `${persona} portrait. ${photoStyle} Wearing ${outfit} at ${location}. Shot on Leica M10 with ${lensDetails[lens]}. ${lens} perspective. Image ${idx+1} of 4.`;\n});\n\nreturn [{\n  json: {\n    prompts,\n    lenses,\n    persona,\n    caption: row.Caption1 || row.Caption2 || row.Caption3,\n    ig_handle: row.IG_Handle\n  }\n}];"
+      }
+    },
+    {
+      "id": "725f6ac8-9089-49f4-9e4a-420e38fe0cc0",
+      "name": "Generate Image 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        450
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3456/generate",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"prompt\":\"={{ $json.prompts[0] }}\",\"ratio\":\"4:5\",\"persona\":\"={{ $json.persona }}\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "7b56bfcc-b6bb-4475-8c0f-9e2df0a02f66",
+      "name": "Generate Image 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        450
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3456/generate",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"prompt\":\"={{ $json.prompts[1] }}\",\"ratio\":\"4:5\",\"persona\":\"={{ $json.persona }}\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1a07c32e-7a8a-4cba-8046-d862e6ba00a2",
+      "name": "Generate Image 3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        450
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3456/generate",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"prompt\":\"={{ $json.prompts[2] }}\",\"ratio\":\"4:5\",\"persona\":\"={{ $json.persona }}\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "12bdd8a2-144a-4a9a-89df-bfe18393bfdf",
+      "name": "Generate Image 4",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        450
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3456/generate",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"prompt\":\"={{ $json.prompts[3] }}\",\"ratio\":\"4:5\",\"persona\":\"={{ $json.persona }}\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "978ddbca-057c-49e9-8c3c-fb31077b6835",
+      "name": "Merge 4 Images",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        530,
+        650
+      ],
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll"
+      }
+    },
+    {
+      "id": "b21b185c-50ff-4bba-9e00-05d695c9bc9c",
+      "name": "Post Carousel to IG",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        750,
+        650
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/ig-post",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"images\":[\"={{$json[0].imageUrl}}\",\"={{$json[1].imageUrl}}\",\"={{$json[2].imageUrl}}\",\"={{$json[3].imageUrl}}\"],\"caption\":\"={{$json[0].caption}}\",\"persona\":\"={{$json[0].persona}}\",\"ig_handle\":\"={{$json[0].ig_handle}}\",\"ratio\":\"4:5\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "08db752e-da21-4de5-8e22-4d8aee51371b",
+      "name": "Update State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        970,
+        650
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/state/{{$json.persona_key}}/posted",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"post_id\":\"={{ Date.now() }}\",\"brand\":\"\",\"location\":\"={{$json.concept.location}}\",\"outfit\":\"={{$json.concept.outfit}}\",\"image_paths\":[\"={{$json[0].imageUrl}}\"],\"caption\":\"={{$json.caption}}\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "44d12c7b-c8e6-46ea-9205-9a3b0bfc93c6",
+      "name": "Telegram Success",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1190,
+        650
+      ],
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "✅ {{$json.persona}} 已發布！4張相片輪換鏡頭：{{$json.lenses.join(', ')}}"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Approved Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Approved Content": {
+      "main": [
+        [
+          {
+            "node": "Build 4 Image Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build 4 Image Prompts": {
+      "main": [
+        [
+          {
+            "node": "Generate Image 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Image 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Image 3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Image 4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image 1": {
+      "main": [
+        [
+          {
+            "node": "Merge 4 Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image 2": {
+      "main": [
+        [
+          {
+            "node": "Merge 4 Images",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Generate Image 3": {
+      "main": [
+        [
+          {
+            "node": "Merge 4 Images",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Generate Image 4": {
+      "main": [
+        [
+          {
+            "node": "Merge 4 Images",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Merge 4 Images": {
+      "main": [
+        [
+          {
+            "node": "Post Carousel to IG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Carousel to IG": {
+      "main": [
+        [
+          {
+            "node": "Update State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update State": {
+      "main": [
+        [
+          {
+            "node": "Telegram Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {},
+  "meta": null,
+  "tags": []
+}

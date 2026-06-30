@@ -1,0 +1,233 @@
+{
+  "name": "數字人內容農場 (Digital Human Content Farm)",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "id": "trigger-daily",
+      "name": "每日早晨觸發",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 數字人 DNA 資料庫 - 你可以隨時增加新角色\nconst digitalHumans = [\n  {\n    id: 'olivia',\n    name: 'Olivia',\n    persona: 'Lifestyle & Wellness Coach',\n    tone: '溫暖、鼓勵、真誠',\n    topics: ['健康生活', '正念冥想', '自我成長', '日常小確幸'],\n    targetAudience: '25-40歲女性，追求生活質素',\n    postFrequency: 3,\n    platforms: ['instagram']\n  },\n  {\n    id: 'max',\n    name: 'Max',\n    persona: 'Tech & Digital Nomad',\n    tone: '幽默、直接、實用',\n    topics: ['科技評測', '遠程工作', '效率工具', '創業心得'],\n    targetAudience: '20-35歲男性，科技愛好者',\n    postFrequency: 2,\n    platforms: ['instagram']\n  }\n];\n\n// 隨機選擇今日輪值的數字人\nconst todayIndex = new Date().getDay() % digitalHumans.length;\nconst selectedHuman = digitalHumans[todayIndex];\n\nreturn {\n  json: selectedHuman\n};"
+      },
+      "id": "select-human",
+      "name": "選擇今日數字人",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.OPENROUTER_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "google/gemini-3.1-flash-lite"
+            },
+            {
+              "name": "messages",
+              "value": "[{\"role\":\"system\",\"content\":\"你係一個{{$json.persona}}，語氣{{$json.tone}}。請為Instagram寫一條吸引、有共鳴嘅文案，主題係{{$json.topics[0]}}。字數約100-150字，要包含3-5個相關hashtag。請直接輸出文案內容，唔需要任何解釋。\"},{\"role\":\"user\",\"content\":\"請生成今日嘅Instagram文案。\"}]"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "generate-content",
+      "name": "AI 生成文案",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        640,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 從 AI 回應中提取文案內容\nconst aiResponse = $json;\nlet content = '';\n\nif (aiResponse.choices && aiResponse.choices[0] && aiResponse.choices[0].message) {\n  content = aiResponse.choices[0].message.content;\n}\n\n// 生成圖像提示詞\nconst imagePrompt = `A stunning Instagram-style photo related to ${$json.topics[0]}, aesthetic, high quality, trending on Instagram`;\n\nreturn {\n  json: {\n    digitalHuman: $json.name,\n    persona: $json.persona,\n    content: content,\n    imagePrompt: imagePrompt,\n    topic: $json.topics[0],\n    tone: $json.tone\n  }\n};"
+      },
+      "id": "format-output",
+      "name": "格式化輸出",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.stability.ai/v2beta/stable-image/generate/sd3",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.STABILITY_API_KEY}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.imagePrompt }}"
+            },
+            {
+              "name": "output_format",
+              "value": "png"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "generate-image",
+      "name": "AI 生成配圖",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1060,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "unit": "hours",
+        "amount": 2
+      },
+      "id": "wait-publish",
+      "name": "等待最佳發佈時間",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        1260,
+        300
+      ],
+      "webhookId": "8d6093ec-dc10-4803-ae3b-87e5219ecf5d"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 記錄發佈日誌\nconst log = {\n  timestamp: new Date().toISOString(),\n  digitalHuman: $json.digitalHuman,\n  topic: $json.topic,\n  contentPreview: $json.content.substring(0, 50) + '...',\n  status: 'ready_to_publish'\n};\n\nconsole.log('內容農場日誌:', log);\n\nreturn {\n  json: log\n};"
+      },
+      "id": "log-output",
+      "name": "記錄發佈日誌",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1460,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "每日早晨觸發": {
+      "main": [
+        [
+          {
+            "node": "選擇今日數字人",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "選擇今日數字人": {
+      "main": [
+        [
+          {
+            "node": "AI 生成文案",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI 生成文案": {
+      "main": [
+        [
+          {
+            "node": "格式化輸出",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "格式化輸出": {
+      "main": [
+        [
+          {
+            "node": "AI 生成配圖",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI 生成配圖": {
+      "main": [
+        [
+          {
+            "node": "等待最佳發佈時間",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "等待最佳發佈時間": {
+      "main": [
+        [
+          {
+            "node": "記錄發佈日誌",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "tags": []
+}

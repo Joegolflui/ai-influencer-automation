@@ -1,0 +1,352 @@
+{
+  "name": "FB + IG Smart Comment Auto-Responder (AI Fleet)",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fb-ig-comments",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-comments",
+      "name": "Webhook Comments",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        180,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "verify-get",
+              "leftValue": "={{ $request.method }}",
+              "rightValue": "GET",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-verify",
+      "name": "Is Verify Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $request.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "id": "respond-challenge",
+      "name": "Respond Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        620,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-comment",
+              "leftValue": "={{ $json.entry && $json.entry[0] && ($json.entry[0].changes || $json.entry[0].messaging) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-event",
+      "name": "Has Comment/Event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "comment_text",
+              "name": "comment_text",
+              "value": "={{ $json.entry[0].changes[0].value.message || $json.entry[0].messaging[0].message.text || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "from_name",
+              "name": "from_name",
+              "value": "={{ $json.entry[0].changes[0].value.from.name || 'User' }}",
+              "type": "string"
+            },
+            {
+              "id": "comment_id",
+              "name": "comment_id",
+              "value": "={{ $json.entry[0].changes[0].value.comment_id || $json.entry[0].changes[0].value.id }}",
+              "type": "string"
+            },
+            {
+              "id": "page_id",
+              "name": "page_id",
+              "value": "={{ $json.entry[0].id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract-comment",
+      "name": "Extract Comment Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        620,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "not-self",
+              "leftValue": "={{ !$json.comment_text.toLowerCase().includes('bot') && $json.from_name != 'Green Bull Bot' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-should-reply",
+      "name": "Should Reply? (not self)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        840,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "command": "echo 'Reply to this social comment in friendly, helpful, short way (same language as comment). Comment: {{ $json.comment_text }}. From: {{ $json.from_name }}' | /Users/emofficemba/.kimi-code/bin/kimi --prompt \"You are the official assistant for our brand. Generate a natural reply.\" --yolo 2>/dev/null | head -c 280 || echo \"Thanks for your comment! We'll get back to you soon. 🙏\"",
+        "options": {}
+      },
+      "id": "generate-ai-reply",
+      "name": "Generate AI Reply (Kimi)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1.2,
+      "position": [
+        1060,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/{{ $json.comment_id }}/replies",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $json.stdout || 'Thanks for reaching out!' }}"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $credentials.accessToken }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "reply-to-comment",
+      "name": "Reply to Comment (FB/IG)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1280,
+        320
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fb-page-auth",
+          "name": "FB Page Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { received: true, replied: true, at: new Date().toISOString() } }}",
+        "options": {}
+      },
+      "id": "respond-ok",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1500,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "command": "echo \"[$(date)] Replied to comment from {{ $json.from_name }}: {{ $json.comment_text | truncate(50) }}\" >> ~/Library/Logs/fb-ig-comments.log",
+        "options": {}
+      },
+      "id": "log-reply",
+      "name": "Log Reply",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        500
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Comments": {
+      "main": [
+        [
+          {
+            "node": "Is Verify Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Verify Request?": {
+      "main": [
+        [
+          {
+            "node": "Respond Challenge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Has Comment/Event?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Comment/Event?": {
+      "main": [
+        [
+          {
+            "node": "Extract Comment Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Comment Data": {
+      "main": [
+        [
+          {
+            "node": "Should Reply? (not self)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Reply? (not self)": {
+      "main": [
+        [
+          {
+            "node": "Generate AI Reply (Kimi)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate AI Reply (Kimi)": {
+      "main": [
+        [
+          {
+            "node": "Reply to Comment (FB/IG)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to Comment (FB/IG)": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "green-fleet-n8n"
+  },
+  "tags": []
+}

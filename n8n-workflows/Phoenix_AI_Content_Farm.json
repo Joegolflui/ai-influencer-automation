@@ -1,0 +1,415 @@
+{
+  "name": "Phoenix AI Content Farm",
+  "active": false,
+  "nodes": [
+    {
+      "id": "2f32fbc7-dd23-437c-ad18-5faf6f32a7ab",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 8
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "16fae15d-b1fe-4b57-a479-d8ba5a553753",
+      "name": "Read Master Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        200
+      ],
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst config = JSON.parse(fs.readFileSync('/Users/emofficemba/ai-content-farm/config/master-config.json', 'utf8'));\nconst persona = config.personas['phoenix'];\nreturn [{\n  json: {\n    persona_key: 'phoenix',\n    persona: persona,\n    photo_specs: config.system.photography,\n    rules: config.system.generation_rules,\n    lens_rotation: config.system.lens_rotation_groups\n  }\n}];"
+      }
+    },
+    {
+      "id": "c4760239-b49f-41c3-9213-d8a12792f534",
+      "name": "Get Persona State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        200
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:3001/state/phoenix",
+        "options": {}
+      }
+    },
+    {
+      "id": "3042b7fa-eaf5-490d-9b13-c13aa927d336",
+      "name": "Kimi Research",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/research",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"persona_key\":\"phoenix\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ab02dd04-be81-43c3-8006-01bbc71fba55",
+      "name": "Build 4 Image Prompts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        200
+      ],
+      "parameters": {
+        "jsCode": "const photo = $input.first().json.photo_specs;\nconst concept = $input.first().json.concept;\nconst lenses = $input.first().json.lenses;\nconst persona = $input.first().json.persona_name;\nconst camera = photo.camera;\n\nconst lensMap = photo.lenses;\nconst prompts = lenses.map((l, idx) => {\n  return `${persona} portrait. ${photo.style}. ${photo.skin}. ${photo.lighting}. Wearing ${concept.outfit} at ${concept.location}. Shot on ${camera} with ${lensMap[l]}. ${l} perspective. ${photo.negative_prompt}. IG ${photo.ig_ratio}.`;\n});\n\nreturn [{\n  json: {\n    prompts,\n    lenses,\n    persona,\n    concept,\n    postInGroup: $input.first().json.cycle_position\n  }\n}];"
+      }
+    },
+    {
+      "id": "df32b615-77c0-497d-8c06-0f193b7f3ab8",
+      "name": "Generate Image 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        200,
+        450
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3456/generate",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"prompt\":\"={{ $json.prompts[0] }}\",\"ratio\":\"4:5\",\"persona\":\"={{ $json.persona }}\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "058302ff-0b41-41e8-9403-23625d52d0df",
+      "name": "Generate Image 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        420,
+        450
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3456/generate",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"prompt\":\"={{ $json.prompts[1] }}\",\"ratio\":\"4:5\",\"persona\":\"={{ $json.persona }}\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9530b199-48db-4f79-bf92-f5e552a5aae9",
+      "name": "Generate Image 3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        450
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3456/generate",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"prompt\":\"={{ $json.prompts[2] }}\",\"ratio\":\"4:5\",\"persona\":\"={{ $json.persona }}\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e788390c-3895-408d-9488-2c75b989f618",
+      "name": "Generate Image 4",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        860,
+        450
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3456/generate",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"prompt\":\"={{ $json.prompts[3] }}\",\"ratio\":\"4:5\",\"persona\":\"={{ $json.persona }}\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "0249e75a-d2f9-442b-9051-f046ce0d79aa",
+      "name": "Merge 4 Images",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        530,
+        650
+      ],
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll"
+      }
+    },
+    {
+      "id": "32a5b5bb-47f1-4c55-9040-93ed086d671e",
+      "name": "Post Carousel to IG",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        750,
+        650
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/ig-post",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"images\":[\"={{$json[0].imageUrl}}\",\"={{$json[1].imageUrl}}\",\"={{$json[2].imageUrl}}\",\"={{$json[3].imageUrl}}\"],\"caption\":\"={{$json[0].caption}}\",\"persona\":\"={{$json[0].persona}}\",\"ratio\":\"4:5\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "36f44c02-512b-4a11-a2e6-677bc69be777",
+      "name": "Update State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        970,
+        650
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/state/phoenix/posted",
+        "sendBody": true,
+        "body": {
+          "contentType": "json",
+          "json": "{\"post_id\":\"={{ Date.now() }}\",\"brand\":\"={{$json.concept.brand}}\",\"location\":\"={{$json.concept.location}}\",\"outfit\":\"={{$json.concept.outfit}}\",\"image_paths\":[\"={{$json[0].imageUrl}}\",\"={{$json[1].imageUrl}}\",\"={{$json[2].imageUrl}}\",\"={{$json[3].imageUrl}}\"],\"caption\":\"={{$json.concept.caption}}\",\"cycle_position\":\"={{$json.postInGroup}}\"}"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9691cc15-ad4c-4aa8-85e3-77d4f8f26bea",
+      "name": "Telegram Success",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1190,
+        650
+      ],
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "✅ {{$json.persona}} 第{{$json.postInGroup}}個post 已發布！4張相片鏡頭：{{$json.lenses.join(', ')}}"
+      }
+    },
+    {
+      "id": "8143e31d-6090-44e9-8307-bee65ea55c8e",
+      "name": "Telegram Error",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        750,
+        850
+      ],
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "❌ phoenix pipeline failed: {{$json.error}}"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Master Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Master Config": {
+      "main": [
+        [
+          {
+            "node": "Get Persona State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Persona State": {
+      "main": [
+        [
+          {
+            "node": "Kimi Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kimi Research": {
+      "main": [
+        [
+          {
+            "node": "Build 4 Image Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build 4 Image Prompts": {
+      "main": [
+        [
+          {
+            "node": "Generate Image 1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Image 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Image 3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Image 4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image 1": {
+      "main": [
+        [
+          {
+            "node": "Merge 4 Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Image 2": {
+      "main": [
+        [
+          {
+            "node": "Merge 4 Images",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Generate Image 3": {
+      "main": [
+        [
+          {
+            "node": "Merge 4 Images",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Generate Image 4": {
+      "main": [
+        [
+          {
+            "node": "Merge 4 Images",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Merge 4 Images": {
+      "main": [
+        [
+          {
+            "node": "Post Carousel to IG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post Carousel to IG": {
+      "main": [
+        [
+          {
+            "node": "Update State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update State": {
+      "main": [
+        [
+          {
+            "node": "Telegram Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": ""
+  },
+  "staticData": {},
+  "meta": null,
+  "tags": [
+    "Instagram Automation"
+  ]
+}

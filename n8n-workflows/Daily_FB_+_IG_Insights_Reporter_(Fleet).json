@@ -1,0 +1,128 @@
+{
+  "name": "Daily FB + IG Insights Reporter (Fleet)",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "cronExpression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "daily-cron",
+      "name": "Daily 9am",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v19.0/me/insights?metric=page_impressions,page_engaged_users&period=day&access_token={{ $credentials.accessToken }}",
+        "options": {}
+      },
+      "id": "fb-insights",
+      "name": "FB Page Insights",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        460,
+        240
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "fb-page-auth",
+          "name": "FB Page Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "echo 'FB+IG daily report generated at $(date). See n8n execution for details.' | /Users/emofficemba/.kimi-code/bin/kimi --prompt 'Summarize this into a short nice report for our team Telegram.' --yolo 2>/dev/null || echo 'Daily report: check n8n for FB/IG stats.'",
+        "options": {}
+      },
+      "id": "ai-summary",
+      "name": "AI Format Report (Kimi)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_REPORT_CHAT || 'your-chat-id' }}",
+        "text": "={{ $json.stdout || 'FB/IG daily insights ready. Check n8n.' }}",
+        "additionalFields": {}
+      },
+      "id": "send-telegram",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        900,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot",
+          "name": "Telegram Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 9am": {
+      "main": [
+        [
+          {
+            "node": "FB Page Insights",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Format Report (Kimi)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FB Page Insights": {
+      "main": [
+        [
+          {
+            "node": "AI Format Report (Kimi)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Format Report (Kimi)": {
+      "main": [
+        [
+          {
+            "node": "Send to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "staticData": null,
+  "meta": {
+    "instanceId": "green-fleet-n8n"
+  },
+  "tags": []
+}
